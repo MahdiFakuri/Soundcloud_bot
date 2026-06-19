@@ -1,4 +1,5 @@
 import os
+import requests
 import yt_dlp
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
@@ -6,15 +7,28 @@ from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filte
 TOKEN = "8862830628:AAFvNAbijon5QxxC3sQ0b4a-KHpdFqtv5bQ"
 
 
+# تبدیل لینک کوتاه SoundCloud به لینک اصلی
+def resolve_url(url: str) -> str:
+    if "on.soundcloud.com" in url:
+        try:
+            r = requests.head(url, allow_redirects=True, timeout=10)
+            return r.url
+        except:
+            return url
+    return url
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text
+    url = update.message.text.strip()
+    url = resolve_url(url)
 
     await update.message.reply_text("در حال دانلود... 🎧")
 
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': 'audio.%(ext)s',
-        'quiet': True
+        'quiet': True,
+        'noplaylist': True
     }
 
     try:
@@ -30,7 +44,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 break
 
         if filename is None:
-            await update.message.reply_text("فایل دانلود نشد ❌ (لینک شاید محدود باشه)")
+            await update.message.reply_text("دانلود ناموفق بود ❌ (لینک یا محدودیت دارد)")
             return
 
         await update.message.reply_audio(audio=open(filename, 'rb'))
