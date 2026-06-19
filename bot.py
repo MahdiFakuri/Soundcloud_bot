@@ -1,10 +1,19 @@
 import os
+import re
 import requests
 import yt_dlp
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
 TOKEN = "8862830628:AAFvNAbijon5QxxC3sQ0b4a-KHpdFqtv5bQ"
+
+
+# استخراج لینک واقعی از متن (مشکل اصلی تو حل میشه)
+def extract_url(text: str) -> str | None:
+    urls = re.findall(r'https?://\S+', text)
+    if not urls:
+        return None
+    return urls[0]
 
 
 # تبدیل لینک کوتاه SoundCloud به لینک اصلی
@@ -19,7 +28,14 @@ def resolve_url(url: str) -> str:
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    url = update.message.text.strip()
+    text = update.message.text
+
+    url = extract_url(text)
+
+    if not url:
+        await update.message.reply_text("هیچ لینکی پیدا نشد ❌")
+        return
+
     url = resolve_url(url)
 
     await update.message.reply_text("در حال دانلود... 🎧")
@@ -43,16 +59,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 filename = f
                 break
 
-        if filename is None:
-            await update.message.reply_text("دانلود ناموفق بود ❌ (لینک یا محدودیت دارد)")
+        if not filename:
+            await update.message.reply_text("دانلود ناموفق بود ❌")
             return
 
         await update.message.reply_audio(audio=open(filename, 'rb'))
-
         os.remove(filename)
 
     except Exception as e:
-        await update.message.reply_text(f"خطا در دانلود ❌\n{str(e)}")
+        await update.message.reply_text(f"خطا ❌\n{str(e)}")
 
 
 app = ApplicationBuilder().token(TOKEN).build()
