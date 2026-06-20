@@ -5,7 +5,7 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filters
 
-TOKEN = "YOUR_TOKEN"
+TOKEN = "8862830628:AAFvNAbijon5QxxC3sQ0b4a-KHpdFqtv5bQ"
 
 
 def extract_url(text):
