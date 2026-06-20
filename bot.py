@@ -24,10 +24,21 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("در حال دانلود... 🎧")
 
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': 'audio.%(ext)s',
-        'quiet': True
+    'format': 'bestaudio[ext=m4a]/bestaudio/best',
+    'outtmpl': 'audio.%(ext)s',
+    'quiet': True,
+    'nocheckcertificate': True,
+    'geo_bypass': True,
+    'geo_bypass_country': 'NL',
+    'extractor_args': {
+        'youtube': {
+            'skip': ['dash', 'hls']
+        }
+    },
+    'http_headers': {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36'
     }
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
